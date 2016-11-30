@@ -10,39 +10,40 @@ sys.path.insert(0, os.path.abspath(".."))  # For imports
 import pandas as pd
 from multiprocessing import Pool
 import scipy.stats as stats
-from lib.fonollosa import features
+#from lib.fonollosa import features
 import numpy
 from sklearn import metrics
 import csv
 # import lib.fsic as fsic
-#import lib.fsic.data as data
-#import lib.fsic.indtest as it #Removed for theano locks
+# import lib.fsic.data as data
+# import lib.fsic.indtest as it #Removed for theano locks
 import lib.mutual_info_bf.mutual_info as mi
-import lib.lopez_paz.indep_crit as lp_crit
+#import lib.lopez_paz.indep_crit as lp_crit
 import warnings
 import time
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)  # Need to fix Lopez paz Ic
 
-#lp = lp_crit.lp_indep_criterion()
+# lp = lp_crit.lp_indep_criterion()
 
+rejected_variables = ['repqaa', 'situa', 'ipran']
 BINARY = "Binary"
 CATEGORICAL = "Categorical"
 NUMERICAL = "Numerical"
 
 max_proc = int(sys.argv[1])
-#inputdata = '../input/kaggle/CEfinal_train'
-inputdata='../output/test/test_crit_'
-#crit_names = "Mutual information",
+# inputdata = '../input/kaggle/CEfinal_train'
+inputdata = 'test/test_crit_'
+# crit_names = "Mutual information",
 
-crit_names= ["Pearson's correlation",
+crit_names = ["Pearson's correlation",
               "AbsPearson's correlation",
               "Pval-Pearson",
               "Chi2 test",
               "Mutual information",
               "Corrected Cramer's V",
               "Lopez Paz's coefficient",
-              #"FSIC",
+              # "FSIC",
               "BF2d mutual info",
               "BFMat mutual info",
               "ScPearson correlation",
@@ -52,16 +53,18 @@ crit_names= ["Pearson's correlation",
 # FSIC param :
 # Significance level of the test
 
-def bin_variables(var1,var1type, var2,var2type):
-    if var1type==NUMERICAL:
-        val1=numpy.digitize(var1,numpy.histogram(var1,bins='auto'))
-    else: val1=var1
+def bin_variables(var1, var1type, var2, var2type):
+    if var1type == NUMERICAL:
+        val1 = numpy.digitize(var1, numpy.histogram(var1, bins='auto'))
+    else:
+        val1 = var1
     if var2type == NUMERICAL:
         val2 = numpy.digitize(var2, numpy.histogram(var2, bins='auto'))
     else:
-        val2= var2
+        val2 = var2
 
-    return val1,val2
+    return val1, val2
+
 
 def confusion_mat(val1, val2):
     '''
@@ -109,15 +112,17 @@ def cramers_corrected_stat(confusion_matrix):
 def f_pearson(var1, var2, var1type, var2type):
     return stats.pearsonr(var1, var2)[0]
 
+
 def f_abspearson(var1, var2, var1type, var2type):
     return abs(stats.pearsonr(var1, var2)[0])
+
 
 def f_pval_pearson(var1, var2, var1type, var2type):
     return 1 - abs(stats.pearsonr(var1, var2)[1])
 
 
 def f_sc_pval_pearson(var1, var2, var1type, var2type):
-    #Switching categories to obtain the best correlation values
+    # Switching categories to obtain the best correlation values
     if var1type == CATEGORICAL or var1type == BINARY:
         var1 = [int(i) for i in var1]
         df = pd.DataFrame([pd.Categorical(var1), var2], columns=['cate', 'val'])
@@ -143,7 +148,7 @@ def f_sc_pval_pearson(var1, var2, var1type, var2type):
 
 
 def f_sc_pearson(var1, var2, var1type, var2type):
-    #Switching categories to obtain the best correlation values
+    # Switching categories to obtain the best correlation values
 
     if var1type == CATEGORICAL or var1type == BINARY:
         var1 = [int(i) for i in var1]
@@ -265,16 +270,16 @@ def f_fsic(var1, var2, var1type, var2type):
 
 dependency_functions = [f_pearson,
                         f_abspearson,
-                         f_pval_pearson,
-                         f_chi2_test,
-                         f_mutual_info_score,
-                         f_corr_CramerV,
-                         f_lp_indep_c,
+                        f_pval_pearson,
+                        f_chi2_test,
+                        f_mutual_info_score,
+                        f_corr_CramerV,
+                        f_lp_indep_c,
                         # f_fsic,
-                         f_bf_mutual_info_2d,
-                         f_bf_mutual_info_mat,
-                         f_sc_pearson,
-                         f_sc_pval_pearson
+                        f_bf_mutual_info_2d,
+                        f_bf_mutual_info_mat,
+                        f_sc_pearson,
+                        f_sc_pval_pearson
                         ]
 
 
@@ -285,18 +290,20 @@ def process_job_parts(part_number, index):
     results = []
 
     for idx, row in data.iterrows():
-        var1 = row['A'].split()
-        var2 = row['B'].split()
-        var1 = [float(i) for i in var1]
-        var2 = [float(i) for i in var2]
+        if not any(reject in row['SampleID'] for reject in rejected_variables):
 
-        #res = f_mutual_info_score(var1, var2, row['A-Type'], row['B-Type'])
-        res = dependency_functions[index](var1, var2, row['A-Type'], row['B-Type'])
-        '''Debugging why Mutual Info works bad w/ some pairs ''' #ToDo : Remove section
+            var1 = row['A'].split()
+            var2 = row['B'].split()
+            var1 = [float(i) for i in var1]
+            var2 = [float(i) for i in var2]
 
-        results.append([res, row['Pairtype'],row['A-Type'], row['B-Type'],row['SampleID']])
+            # res = f_mutual_info_score(var1, var2, row['A-Type'], row['B-Type'])
+            res = dependency_functions[index](var1, var2, row['A-Type'], row['B-Type'])
+            '''Debugging why Mutual Info works bad w/ some pairs '''  # ToDo : Remove section
 
-    r_df = pd.DataFrame(results, columns=['Target', 'Pairtype','A-Type','B-Type','SampleID'])
+            results.append([res, row['Pairtype'], row['A-Type'], row['B-Type'], row['SampleID']])
+
+    r_df = pd.DataFrame(results, columns=['Target', 'Pairtype', 'A-Type', 'B-Type', 'SampleID'])
     # r_df = r_df.sort_values(by='Target',ascending=False)
     # r_df.ix[(r_df.index>300) | (r_df['Pairtype']=='O'),['A','B']]=0
     sys.stdout.write('Writing results for ' + crit_names[index][:4] + '-' + str(part_number) + '\n')
@@ -329,6 +336,7 @@ def process_job(index):
     sys.stdout.flush()
     r_df.to_csv(inputdata + '_' + crit_names[index][:4] + '.csv', sep=';', index=False)
 
+
 if __name__ == '__main__':
     for idx_crit, name in enumerate(crit_names):
         print(name)
@@ -341,15 +349,15 @@ if __name__ == '__main__':
             part_number += 1
             time.sleep(1)
         pool.close()
-        pool.join() # For data in parts'''
-        #print('Begin ' + name)
-        #process_job(idx_crit)
+        pool.join()  # For data in parts'''
+        # print('Begin ' + name)
+        # process_job(idx_crit)
 
         # Merging file
         if os.path.exists(inputdata + crit_names[idx_crit][:4] + '-1' + '.csv'):
             with open(inputdata + crit_names[idx_crit][:4] + '.csv', 'wb') as mergefile:
                 merger = csv.writer(mergefile, delimiter=';', lineterminator='\n')
-                merger.writerow(['Target', 'Pairtype','A-Type','B-Type','SampleID'])
+                merger.writerow(['Target', 'Pairtype', 'A-Type', 'B-Type', 'SampleID'])
                 for i in range(1, part_number):
 
                     with open(inputdata + crit_names[idx_crit][:4] + '-' + str(i) + '.csv', 'rb') as partfile:
@@ -357,9 +365,9 @@ if __name__ == '__main__':
                         header = next(reader)
                         for row in reader:
                             merger.writerow(row)
-                    os.remove(inputdata + crit_names[idx_crit][:4] + '-' + str(i) + '.csv') #For data in parts
+                    os.remove(inputdata + crit_names[idx_crit][:4] + '-' + str(i) + '.csv')  # For data in parts
             print("Reorder data")
-            outputdata=pd.read_csv(inputdata + crit_names[idx_crit][:4] + '.csv',sep=';')
-            outputdata.columns=['Target', 'Pairtype','A-Type','B-Type','SampleID']
-            outputdata=outputdata.sort_values(by='Target',ascending=False)
-            outputdata.to_csv(inputdata + crit_names[idx_crit][:4] + '.csv',sep=';',index=False)
+            outputdata = pd.read_csv(inputdata + crit_names[idx_crit][:4] + '.csv', sep=';')
+            outputdata.columns = ['Target', 'Pairtype', 'A-Type', 'B-Type', 'SampleID']
+            outputdata = outputdata.sort_values(by='Target', ascending=False)
+            outputdata.to_csv(inputdata + crit_names[idx_crit][:4] + '.csv', sep=';', index=False)
