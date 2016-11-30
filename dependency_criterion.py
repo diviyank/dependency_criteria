@@ -40,7 +40,8 @@ crit_names = ["Pearson's correlation",
               "AbsPearson's correlation",
               "Pval-Pearson",
               "Chi2 test",
-              "Mutual information",
+              "AMutual information",
+              "NMutual information",
               "Corrected Cramer's V",
               "Lopez Paz's coefficient",
               # "FSIC",
@@ -186,8 +187,13 @@ def f_chi2_test(var1, var2, var1type, var2type):
 
 def f_mutual_info_score(var1, var2, var1type, var2type):
     values1, values2 = bin_variables(var1, var1type, var2, var2type)
-    return metrics.adjusted_mutual_info_score(values1, values2)
+    return metrics.normalized_mutual_info_score(values1, values2)
 
+
+
+def f_adj_mutual_info_score(var1, var2, var1type, var2type):
+    values1, values2 = bin_variables(var1, var1type, var2, var2type)
+    return metrics.adjusted_mutual_info_score(values1, values2)
 
 def f_bf_mutual_info_2d(var1, var2, var1type, var2type):
     return mi.mutual_information_2d(var1, var2)
@@ -272,6 +278,7 @@ dependency_functions = [f_pearson,
                         f_abspearson,
                         f_pval_pearson,
                         f_chi2_test,
+                        f_adj_mutual_info_score,
                         f_mutual_info_score,
                         f_corr_CramerV,
                         f_lp_indep_c,

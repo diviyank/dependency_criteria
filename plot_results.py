@@ -12,11 +12,13 @@ from itertools import cycle
 from sklearn.metrics import auc, average_precision_score,precision_recall_curve
 
 inputdata='../output/test/results/'
-colors = cycle(['cyan', 'indigo', 'seagreen', 'gold', 'blue', 'darkorange','red','grey','darkviolet','mediumslateblue'])
+colors = cycle(['cyan', 'indigo', 'seagreen', 'gold', 'blue',
+                'darkorange','red','grey','darkviolet','mediumslateblue','chocolate'])
 crit_names = ["Pearson's correlation",
               "AbsPearson's correlation",
               "Pvalue Pearson",
               "Chi2 test",
+              "NMutual information",
               "Mutual information",
               "Corrected Cramer's V",
               "Lopez-Paz Causation coefficient",
