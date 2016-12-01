@@ -26,7 +26,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)  # Need to fix Lo
 
 # lp = lp_crit.lp_indep_criterion()
 
-rejected_variables = ['repqaa', 'situa', 'ipran']
+rejected_variables = ['repqaa', 'situa', 'ipran','ir']
 BINARY = "Binary"
 CATEGORICAL = "Categorical"
 NUMERICAL = "Numerical"
@@ -43,12 +43,13 @@ crit_names = ["Pearson's correlation",
               "AMutual information",
               "NMutual information",
               "Corrected Cramer's V",
-              "Lopez Paz's coefficient",
+              # "Lopez Paz's coefficient",
               # "FSIC",
-              "BF2d mutual info",
-              "BFMat mutual info",
-              "ScPearson correlation",
-              "ScPval-Pearson"]
+              # "BF2d mutual info",
+              # "BFMat mutual info",
+              # "ScPearson correlation",
+              # "ScPval-Pearson"
+              ]
 
 
 # FSIC param :
@@ -56,11 +57,11 @@ crit_names = ["Pearson's correlation",
 
 def bin_variables(var1, var1type, var2, var2type):
     if var1type == NUMERICAL:
-        val1 = numpy.digitize(var1, numpy.histogram(var1, bins='auto'))
+        val1 = numpy.digitize(var1, numpy.histogram(var1, bins='auto')[1])
     else:
         val1 = var1
     if var2type == NUMERICAL:
-        val2 = numpy.digitize(var2, numpy.histogram(var2, bins='auto'))
+        val2 = numpy.digitize(var2, numpy.histogram(var2, bins='auto')[1])
     else:
         val2 = var2
 
@@ -281,12 +282,12 @@ dependency_functions = [f_pearson,
                         f_adj_mutual_info_score,
                         f_mutual_info_score,
                         f_corr_CramerV,
-                        f_lp_indep_c,
+                        #f_lp_indep_c,
                         # f_fsic,
-                        f_bf_mutual_info_2d,
-                        f_bf_mutual_info_mat,
-                        f_sc_pearson,
-                        f_sc_pval_pearson
+                        #f_bf_mutual_info_2d,
+                        #f_bf_mutual_info_mat,
+                        #f_sc_pearson,
+                        #f_sc_pval_pearson
                         ]
 
 
@@ -297,7 +298,9 @@ def process_job_parts(part_number, index):
     results = []
 
     for idx, row in data.iterrows():
-        if not any(reject in row['SampleID'] for reject in rejected_variables):
+        if not any((row['SampleID'].startswith(reject+'-') or row['SampleID'].endswith('-'+reject) #original
+                    or row['SampleID'].startswith(reject+'_') or ('-'+reject+'_') in row['SampleID']) #probes
+                   for reject in rejected_variables):
 
             var1 = row['A'].split()
             var2 = row['B'].split()
