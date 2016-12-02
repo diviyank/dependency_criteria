@@ -54,27 +54,72 @@ crit_names = [#"Pearson's correlation",
 
 # FSIC param :
 # Significance level of the test
+### J.A.R.Fonollosa:
+def count_unique(x):
 
-def bin_variables(var1, var1type, var2, var2type):
+    try:
+        return len(set(x))
+    except TypeError as e:
+        print(x)
+        raise e
+
+def numerical(tp):
+    assert type(tp) is str
+    return tp == NUMERICAL
+
+def discretized_values(x, tx, ffactor, maxdev):
+    if numerical(tx) and count_unique(x) > (2*ffactor*maxdev+1):
+        vmax =  ffactor*maxdev
+        vmin = -ffactor*maxdev
+        return range(vmin, vmax+1)
+    else:
+        return sorted(list(set(x)))
+
+def len_discretized_values(x, tx, ffactor, maxdev):
+    return len(discretized_values(x, tx, ffactor, maxdev))
+
+def discretized_sequence(x, tx, ffactor, maxdev, norm=True):
+    if not norm or (numerical(tx) and count_unique(x) > len_discretized_values(x, tx, ffactor, maxdev)):
+        if norm:
+            x = (x - numpy.mean(x))/numpy.std(x)
+            xf = x[abs(x) < maxdev]
+            x = (x - numpy.mean(xf))/numpy.std(xf)
+        x = numpy.round(x*ffactor)
+        vmax = ffactor*maxdev
+        vmin = -ffactor*maxdev
+        x[x > vmax] = vmax
+        x[x < vmin] = vmin
+    return x
+
+def discretized_sequences(x, tx, y, ty, ffactor=3, maxdev=3):
+    return discretized_sequence(x, tx, ffactor, maxdev), discretized_sequence(y, ty, ffactor, maxdev)
+###
+
+
+
+def bin_variables(var1, var1type, var2, var2type,Fo=True):
     # ToDo : Center & norm?
-    if var1type == NUMERICAL:
-        # if abs(numpy.std(var1))>0.01:
-        #     var1 = (var1 - numpy.mean(var1))/numpy.std(var1)
-        # else:
-        #     var1 = (var1 - numpy.mean(var1))
-        val1 = numpy.digitize(var1, numpy.histogram(var1, bins='doane')[1])
-    else:
-        val1 = var1
-    if var2type == NUMERICAL:
-        # if abs(numpy.std(var2))>0.01:
-        #     var2 = (var2 - numpy.mean(var2)) / numpy.std(var2)
-        # else:
-        #     var2 = (var2 - numpy.mean(var2))
-        val2 = numpy.digitize(var2, numpy.histogram(var2, bins='doane')[1])
-    else:
-        val2 = var2
+    if not Fo:
+        if var1type == NUMERICAL:
+            if abs(numpy.std(var1))>0.01:
+                var1 = (var1 - numpy.mean(var1))/numpy.std(var1)
+            else:
+                var1 = (var1 - numpy.mean(var1))
+            val1 = numpy.digitize(var1, numpy.histogram(var1, bins='doane')[1])
+        else:
+            val1 = var1
+        if var2type == NUMERICAL:
+            if abs(numpy.std(var2))>0.01:
+                var2 = (var2 - numpy.mean(var2)) / numpy.std(var2)
+            else:
+                var2 = (var2 - numpy.mean(var2))
+            val2 = numpy.digitize(var2, numpy.histogram(var2, bins='doane')[1])
+        else:
+            val2 = var2
 
-    return val1, val2
+        return val1, val2
+    else:
+        return discretized_sequences(var1,var1type,var2,var2type)
 
 
 def confusion_mat(val1, val2):

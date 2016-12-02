@@ -11,7 +11,7 @@ import numpy
 from itertools import cycle
 from sklearn.metrics import auc, average_precision_score,precision_recall_curve
 
-inputdata='output/autobinning_final/'
+inputdata='output/norm_fd_binn/'
 colors = cycle(['cyan', 'indigo', 'seagreen', 'gold', 'blue',
                 'darkorange','red','grey','darkviolet','mediumslateblue','chocolate'])
 crit_names = [#"Pearson's correlation",
@@ -19,7 +19,7 @@ crit_names = [#"Pearson's correlation",
               "Pvalue Pearson",
               "Chi2 test",
               "NMutual information",
-              "Mutual information",
+              "AMutual information",
               "Corrected Cramer's V",
               # "Lopez-Paz Causation coefficient",
               # "FSIC",
@@ -30,7 +30,7 @@ crit_names = [#"Pearson's correlation",
               ]
 
 results=[]
-#f, axarr = plt.subplots(2, sharex=True)
+f, axarr = plt.subplots(2, sharex=True)
 fig1 = plt.figure()
 ax1 = fig1.add_subplot(111)
 fig2=plt.figure()
@@ -40,6 +40,7 @@ ax2=fig2.add_subplot(111)
 #     if os.path.exists(inputfile):
 #         print(crit),
 #         df=pd.read_csv(inputfile,sep=';')
+#         df=df[['Target','Pairtype']]
 #         df=df[numpy.isfinite(df['Target'])]
 #         #df['Target']=df['Target'].astype('float')
 #         #print(df.dtypes)
@@ -93,10 +94,10 @@ for crit, color in zip (crit_names,colors):
 
     print(crit)
     try:
-        with open("CEfinal_train_"+crit[:4]+'.csv','r') as results_file:
+        with open("kaggle/norm_fd/CEfinal_train_"+crit[:4]+'.csv','r') as results_file:
             df=pd.read_csv(results_file,sep=';')
             df=df.sort_values(by='Target', ascending=False)
-       
+
             P=float((df['Pairtype']!=4).sum())
             Plist=(df['Pairtype']!=4).tolist()
             N=float((df['Pairtype']==4).sum())
@@ -127,7 +128,7 @@ for crit, color in zip (crit_names,colors):
 
     except IOError:
         continue
-        
+
 
 ax1.plot([0, 1], [0, 1], linestyle='--', color='k',
 label='Luck')
