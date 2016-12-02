@@ -26,19 +26,19 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)  # Need to fix Lo
 
 # lp = lp_crit.lp_indep_criterion()
 
-rejected_variables = ['repqaa', 'situa', 'ipran','ir']
+rejected_variables = ['repqaa', 'situa', 'ipran','ir','pca_axis']
 BINARY = "Binary"
 CATEGORICAL = "Categorical"
 NUMERICAL = "Numerical"
 
 max_proc = int(sys.argv[1])
-# inputdata = '../input/kaggle/CEfinal_train'
+# inputdata = 'input/kaggle/CEfinal_train'
 inputdata = 'test/test_crit_'
 # crit_names = "Mutual information",
 
-crit_names = ["Pearson's correlation",
-              "AbsPearson's correlation",
-              "Pval-Pearson",
+crit_names = [#"Pearson's correlation",
+              #"AbsPearson's correlation",
+              #"Pval-Pearson",
               "Chi2 test",
               "AMutual information",
               "NMutual information",
@@ -56,12 +56,21 @@ crit_names = ["Pearson's correlation",
 # Significance level of the test
 
 def bin_variables(var1, var1type, var2, var2type):
+    # ToDo : Center & norm?
     if var1type == NUMERICAL:
-        val1 = numpy.digitize(var1, numpy.histogram(var1, bins='auto')[1])
+        # if abs(numpy.std(var1))>0.01:
+        #     var1 = (var1 - numpy.mean(var1))/numpy.std(var1)
+        # else:
+        #     var1 = (var1 - numpy.mean(var1))
+        val1 = numpy.digitize(var1, numpy.histogram(var1, bins='doane')[1])
     else:
         val1 = var1
     if var2type == NUMERICAL:
-        val2 = numpy.digitize(var2, numpy.histogram(var2, bins='auto')[1])
+        # if abs(numpy.std(var2))>0.01:
+        #     var2 = (var2 - numpy.mean(var2)) / numpy.std(var2)
+        # else:
+        #     var2 = (var2 - numpy.mean(var2))
+        val2 = numpy.digitize(var2, numpy.histogram(var2, bins='doane')[1])
     else:
         val2 = var2
 
@@ -275,9 +284,9 @@ def f_fsic(var1, var2, var1type, var2type):
         return 0
 
 
-dependency_functions = [f_pearson,
-                        f_abspearson,
-                        f_pval_pearson,
+dependency_functions = [#f_pearson,
+                        #f_abspearson,
+                        #f_pval_pearson,
                         f_chi2_test,
                         f_adj_mutual_info_score,
                         f_mutual_info_score,
@@ -363,7 +372,7 @@ if __name__ == '__main__':
         # print('Begin ' + name)
         # process_job(idx_crit)
 
-        # Merging file
+         # Merging file
         if os.path.exists(inputdata + crit_names[idx_crit][:4] + '-1' + '.csv'):
             with open(inputdata + crit_names[idx_crit][:4] + '.csv', 'wb') as mergefile:
                 merger = csv.writer(mergefile, delimiter=';', lineterminator='\n')

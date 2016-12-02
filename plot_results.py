@@ -11,22 +11,22 @@ import numpy
 from itertools import cycle
 from sklearn.metrics import auc, average_precision_score,precision_recall_curve
 
-inputdata='../output/test/results/'
+inputdata='output/autobinning_final/'
 colors = cycle(['cyan', 'indigo', 'seagreen', 'gold', 'blue',
                 'darkorange','red','grey','darkviolet','mediumslateblue','chocolate'])
-crit_names = ["Pearson's correlation",
+crit_names = [#"Pearson's correlation",
               "AbsPearson's correlation",
               "Pvalue Pearson",
               "Chi2 test",
               "NMutual information",
               "Mutual information",
               "Corrected Cramer's V",
-              "Lopez-Paz Causation coefficient",
-              #"FSIC",
-              "BF2d mutual info",
-              "BFMat mutual info",
-              "ScPearson correlation",
-              "ScPval-Pearson"
+              # "Lopez-Paz Causation coefficient",
+              # "FSIC",
+              # "BF2d mutual info",
+              # "BFMat mutual info",
+              # "ScPearson correlation",
+              # "ScPval-Pearson"
               ]
 
 results=[]
@@ -35,56 +35,56 @@ fig1 = plt.figure()
 ax1 = fig1.add_subplot(111)
 fig2=plt.figure()
 ax2=fig2.add_subplot(111)
-for crit in crit_names:
-    inputfile=inputdata+'test_crit_'+crit[:4]+'.csv'
-    if os.path.exists(inputfile):
-        print(crit),
-        df=pd.read_csv(inputfile,sep=';')
-        df=df[numpy.isfinite(df['Target'])]
-        #df['Target']=df['Target'].astype('float')
-        #print(df.dtypes)
-        if crit[:4]!='Lope':
-            df=df.sort_values(by='Target', ascending=False)
-        else:
-            df=df.sort_values(by='Target', ascending=True)
+# for crit in crit_names:
+#     inputfile=inputdata+'test_crit_'+crit[:4]+'.csv'
+#     if os.path.exists(inputfile):
+#         print(crit),
+#         df=pd.read_csv(inputfile,sep=';')
+#         df=df[numpy.isfinite(df['Target'])]
+#         #df['Target']=df['Target'].astype('float')
+#         #print(df.dtypes)
+#         if crit[:4]!='Lope':
+#             df=df.sort_values(by='Target', ascending=False)
+#         else:
+#             df=df.sort_values(by='Target', ascending=True)
+#
+#         #print(df)
+#         N_max=len(df.index)
+#         print(N_max),
+#         N=0.0
+#         Mprobes_max = (df['Pairtype']=='P').sum()
+#         print(Mprobes_max)
+#         Mprobes = 0.0
+#         FDR=[]
+#
+#         for index,row in df.iterrows():
+#            N=N+1
+#            if row['Pairtype']=='P':
+#                Mprobes+=1
+#
+#            FDR.append((N_max/N)*(Mprobes/Mprobes_max))
+#
+#         results.append(FDR)
+#
+#
+# pickle.dump(results,open(inputdata+'res.p','wb'))
+# #results=pickle.load(open(inputdata+'res.p','rb'))
+#
+# '''for i in range(len(results)-1):
+#     print(results[i]==results[-1])
+#
+# print(len())'''
+# #print(results)
+# for i,color in zip(results,colors):
+#     ax1.plot(range(len(i)),i,color=color)
+#     ax2.plot(range(len(i)),i,color=color)
+# plt.legend(crit_names,loc=4)
+# plt.xlabel('Number of probes retrieved')
+# plt.ylabel('False discovery rate')
+# ax1.set_xscale('log')
+# plt.show()#FDR w/ probes
 
-        #print(df)
-        N_max=len(df.index)
-        print(N_max),
-        N=0.0
-        Mprobes_max = (df['Pairtype']=='P').sum()
-        print(Mprobes_max)
-        Mprobes = 0.0
-        FDR=[]
-
-        for index,row in df.iterrows():
-           N=N+1
-           if row['Pairtype']=='P':
-               Mprobes+=1
-
-           FDR.append((N_max/N)*(Mprobes/Mprobes_max))
-
-        results.append(FDR)
-
-
-pickle.dump(results,open(inputdata+'res.p','wb'))
-#results=pickle.load(open(inputdata+'res.p','rb'))
-
-'''for i in range(len(results)-1):
-    print(results[i]==results[-1])
-
-print(len())'''
-#print(results)
-for i,color in zip(results,colors):
-    ax1.plot(range(len(i)),i,color=color)
-    ax2.plot(range(len(i)),i,color=color)
-plt.legend(crit_names,loc=4)
-plt.xlabel('Number of probes retrieved')
-plt.ylabel('False discovery rate')
-ax1.set_xscale('log')
-plt.show()#FDR w/ probes
-
-'''colors = cycle(['cyan', 'indigo', 'seagreen', 'gold', 'blue', 'darkorange','red','grey','darkviolet','mediumslateblue'])
+colors = cycle(['cyan', 'indigo', 'seagreen', 'gold', 'blue', 'darkorange','red','grey','darkviolet','mediumslateblue'])
 for crit, color in zip (crit_names,colors):
     tpr=[]
     fpr=[]
@@ -140,7 +140,7 @@ ax2.set_xlabel('Recall')
 ax2.set_ylabel('Precision')
 ax2.set_title('Precision recall curve on Kaggle Data')
 ax2.legend(loc='best')
-plt.show()'''
+plt.show()
 
 
       
