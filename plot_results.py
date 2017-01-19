@@ -10,23 +10,25 @@ import cPickle as pickle
 import numpy
 from itertools import cycle
 from sklearn.metrics import auc, average_precision_score,precision_recall_curve
+import seaborn as sns
 
-inputdata='output/norm_fd_binn/'
+inputdata='output/autobinning_final/'
 colors = cycle(['cyan', 'indigo', 'seagreen', 'gold', 'blue',
                 'darkorange','red','grey','darkviolet','mediumslateblue','chocolate'])
 crit_names = [#"Pearson's correlation",
-              "AbsPearson's correlation",
-              "Pvalue Pearson",
+              #"AbsPearson's correlation",
+              #"Pvalue Pearson",
               "Chi2 test",
               "NMutual information",
               "AMutual information",
               "Corrected Cramer's V",
-              # "Lopez-Paz Causation coefficient",
+              "Mercer Kernels"
+               #"Lopez-Paz Causation coefficient",
               # "FSIC",
-              # "BF2d mutual info",
-              # "BFMat mutual info",
-              # "ScPearson correlation",
-              # "ScPval-Pearson"
+               #"BF2d mutual info",
+               #"BFMat mutual info",
+               #"ScPearson correlation",
+               #"ScPval-Pearson"
               ]
 
 results=[]
@@ -35,6 +37,7 @@ fig1 = plt.figure()
 ax1 = fig1.add_subplot(111)
 fig2=plt.figure()
 ax2=fig2.add_subplot(111)
+
 # for crit in crit_names:
 #     inputfile=inputdata+'test_crit_'+crit[:4]+'.csv'
 #     if os.path.exists(inputfile):
@@ -143,5 +146,5 @@ ax2.set_title('Precision recall curve on Kaggle Data')
 ax2.legend(loc='best')
 plt.show()
 
-
-      
+#
+#

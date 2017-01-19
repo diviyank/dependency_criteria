@@ -98,14 +98,14 @@ def discretized_sequences(x, tx, y, ty, ffactor=3, maxdev=3):
 
 
 def bin_variables(var1, var1type, var2, var2type,Fo=True):
-    # ToDo : Center & norm?
+
     if not Fo:
         if var1type == NUMERICAL:
             if abs(numpy.std(var1))>0.01:
                 var1 = (var1 - numpy.mean(var1))/numpy.std(var1)
             else:
                 var1 = (var1 - numpy.mean(var1))
-            val1 = numpy.digitize(var1, numpy.histogram(var1, bins='doane')[1])
+            val1 = numpy.digitize(var1, numpy.histogram(var1, bins='fd')[1])
         else:
             val1 = var1
         if var2type == NUMERICAL:
@@ -113,7 +113,7 @@ def bin_variables(var1, var1type, var2, var2type,Fo=True):
                 var2 = (var2 - numpy.mean(var2)) / numpy.std(var2)
             else:
                 var2 = (var2 - numpy.mean(var2))
-            val2 = numpy.digitize(var2, numpy.histogram(var2, bins='doane')[1])
+            val2 = numpy.digitize(var2, numpy.histogram(var2, bins='fd')[1])
         else:
             val2 = var2
 
