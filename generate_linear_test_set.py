@@ -3,7 +3,7 @@
 
 # In[8]:
 
-get_ipython().system(u'jupyter nbconvert --to script generate_linear_test_set.ipynb')
+#!get_ipython().system(u'jupyter nbconvert --to script generate_linear_test_set.ipynb')
 
 
 # In[1]:
@@ -36,8 +36,8 @@ if __name__== '__main__':
         x_str=''
         y_str=''
         for j in range(len(x)):
-            x_str+=' '+str(val) for val in x
-            y_str+=' '+str(val) for val in y
+            x_str+=' '+str(x[j])
+            y_str+=' '+str(y[j])
         data.append([i,x_str,y_str,coefficient,nb_pts,noise_to_sig_r])
     data_df=pd.DataFrame(data)
     data_df.columns=['ID','X','Y','Coeff','Nb_pts','Noise/Sig']
