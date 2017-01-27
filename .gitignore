@@ -3,6 +3,9 @@
 *.csv
 *.pdf
 *.zip
+*.txt
+*.save
+*.kate-swp
 *.xml
 *.png
 */*.csv~
