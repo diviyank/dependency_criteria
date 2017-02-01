@@ -1,0 +1,115 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Arsclassica Article
+% LaTeX Template
+% Version 1.1 (10/6/14)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Lorenzo Pantieri (http://www.lorenzopantieri.net) with extensive modifications by:
+% Vel (vel@latextemplates.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% !TeX spellcheck = en_GB
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[
+10pt, % Main document font size
+a4paper, % Paper type, use 'letterpaper' for US Letter paper
+oneside, % One page layout (no page indentation)
+%twoside, % Two page layout (page indentation for binding and different headers)
+headinclude,footinclude, % Extra spacing for the header and footer
+BCOR5mm, % Binding correction
+]{scrartcl}
+
+\input{structure.tex} % Include the structure.tex file which specified the document structure and layout
+
+\hyphenation{Fortran hy-phen-ation} % Specify custom hyphenation points in words with dashes where you would like hyphenation to occur, or alternatively, don't put any dashes in a word to stop hyphenation altogether
+
+%----------------------------------------------------------------------------------------
+%	TITLE AND AUTHOR(S)
+%----------------------------------------------------------------------------------------
+
+\title{\normalfont\spacedallcaps{Note on comparing two independance tests}} % The article title
+
+\author{\spacedlowsmallcaps{D.Kalainathan \& O.Goudet  \& I.Guyon \& M.Sébag}} % The article author(s)  author affiliations need to be specified in the AUTHOR AFFILIATIONS block
+
+\date{} % An optional date to appear under the author(s)
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+%----------------------------------------------------------------------------------------
+%	HEADERS
+%----------------------------------------------------------------------------------------
+
+\renewcommand{\sectionmark}[1]{\markright{\spacedlowsmallcaps{#1}}} % The header for all pages (oneside) or for even pages (twoside)
+%\renewcommand{\subsectionmark}[1]{\markright{\thesubsection~#1}} % Uncomment when using the twoside option - this modifies the header on odd pages
+\lehead{\mbox{\llap{\small\thepage\kern1em\color{halfgray} \vline}\color{halfgray}\hspace{0.5em}\rightmark\hfil}} % The header style
+
+\pagestyle{scrheadings} % Enable the headers specified in this block
+
+%----------------------------------------------------------------------------------------
+%	TABLE OF CONTENTS & LISTS OF FIGURES AND TABLES
+%----------------------------------------------------------------------------------------
+
+\maketitle % Print the title/author/date block
+
+%\setcounter{tocdepth}{2} % Set the depth of the table of contents to show sections and subsections only
+
+%\tableofcontents % Print the table of contents
+
+%\listoffigures % Print the list of figures
+
+%\listoftables % Print the list of tables
+
+%----------------------------------------------------------------------------------------
+%	ABSTRACT
+%----------------------------------------------------------------------------------------
+
+%\section*{Abstract} % This section will not appear in the table of contents due to the star (\section*)
+
+
+%----------------------------------------------------------------------------------------
+%	AUTHOR AFFILIATIONS
+%----------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+
+
+%----------------------------------------------------------------------------------------
+%	INTRODUCTION
+%----------------------------------------------------------------------------------------
+
+\section{Context}
+Finding a suitable homogeneous independence test for heterogeneous data\footnote{Here we will focus on Numerical, Categorical and Binary data.} might be a tricky problem, as independence criteria are often specific to specific types of variables. Selecting one criterion over all the ones applicable to all types of variables was done thoughout two steps : the first one on a labelled heterogeneous dataset, and the second one on our real-world data, an unlabelled dataset. For the unlabelled dataset, we added to the dataset some "probes", resulting of random permutations of some real variables to create some really independant pairs to control the false discovery rate. On each on the two steps, we compared the performance of various tests, such as HSIC, the Mercer Kernels used in \cite{bach2002learning}, Chi-2, Cramér's V, Mutual information scores with variants ; all the binning-requiring methods applied with various binning methods. The best performance over our datasets was obtained by the Adjusted Mutual Information score \cite{vinh2010information}\footnote{implemented in the \textit{Scikit-Learn} \cite{scikit-learn} library under the \textit{sklearn.metrics.adjusted\_mutual\_info\_score()} method.} with a binning using the Freedman Diaconis Estimator\footnote{implemented in the \textit{numpy.histogram()} method}(AMI-FD). 
+ 
+\section{Goal and methods}
+After choosing the AMI-FD method as an unique indepedence test, an interesting study is to compare the selected method and Pearson's correlation in the case of only numerical data, to observe the difference of performance of both tests when Pearson's correlation is applicable.
+
+%----------------------------------------------------------------------------------------
+%	METHODS
+%----------------------------------------------------------------------------------------
+
+
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+
+\renewcommand{\refname}{\spacedlowsmallcaps{References}} % For modifying the bibliography heading
+
+\bibliographystyle{apalike}
+
+\bibliography{biblio.bib} % The file containing the bibliography
+
+%----------------------------------------------------------------------------------------
+
+\end{document}
