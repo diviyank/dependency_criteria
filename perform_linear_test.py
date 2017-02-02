@@ -3,10 +3,10 @@
 
 # In[1]:
 
-get_ipython().system(u'jupyter nbconvert --to script perform_linear_test.ipynb')
+#!jupyter nbconvert --to script perform_linear_test.ipynb
 
 
-# In[17]:
+# In[1]:
 
 import numpy as np
 import sklearn.metrics as metrics
@@ -19,9 +19,12 @@ import json
 import seaborn as sns
 from matplotlib import pyplot as plt
 njobs=40
+from joblib import Memory, Parallel, delayed
+mem = Memory('/tmp/joblib/')
 
 
-# In[18]:
+
+# In[2]:
 
 def bin_variable(var1):   # bin with normalization
     
@@ -54,7 +57,7 @@ ajd_mi_bin=lambda x,y : metrics.adjusted_mutual_info_score(bin_variable(x),bin_v
 p_val_test2= lambda x,y : p_val_mi(bin_variable(x),bin_variable(y))
 
 
-# In[19]:
+# In[3]:
 
 ## Evaluating p-distribution for p-value computation
 num_samples_estimation=100000
@@ -65,9 +68,7 @@ num_points=[k*10 for k in range(1,16)]#10,20,30,...150
 
 # In[16]:
 
-from joblib import Memory, Parallel, delayed
 
-mem = Memory('/tmp/joblib/')
 
 def estimate_null_d_pearson(k):
     x = np.random.normal(0,1,k)
@@ -81,15 +82,15 @@ def estimate_null_d_MI(k):
 
 #chc_nd_pear = mem.cache(estimate_null_d_pearson)
 #chc_nd_MI = mem.cache(estimate_null_d_MI)
-
+"""
 values_pear=[]
 values_MI=[]
 # Pearson & MI
 for idx_k,k in zip(range(len(num_points)),num_points):
     print('Number of points : '+str(k))
-    v_mi=Parallel(n_jobs=njobs,backend="multiprocessing",verbose=2)(delayed(estimate_null_d_MI)(k) for i in range(num_samples_estimation))
+    v_mi=Parallel(n_jobs=njobs,backend="multiprocessing",verbose=1)(delayed(estimate_null_d_MI)(k) for i in range(num_samples_estimation))
     values_MI.append(v_mi)
-    v_pear=Parallel(n_jobs=njobs,backend="multiprocessing",verbose=2)(delayed(estimate_null_d_pearson)(k) for i in range(num_samples_estimation))
+    v_pear=Parallel(n_jobs=njobs,backend="multiprocessing",verbose=1)(delayed(estimate_null_d_pearson)(k) for i in range(num_samples_estimation))
     values_pear.append(v_pear)
     '''values_pear.append([])
     values_MI.append([])
@@ -107,7 +108,7 @@ for idx_k,k in zip(range(len(num_points)),num_points):
         json.dump(values_MI[idx_k],outfile)
 
 
-# In[26]:
+# In[5]:
 
 #Save data generated
 #for i in range(len(values_pear)):
@@ -120,8 +121,8 @@ with open('Adj_MI_bin_samples_H2.txt','wb') as outfile:
     json.dump(values_MI,outfile)
 
 
-# In[5]:
-
+# In[11]:
+"""
 # Analyse density curves?
 try:
     values_pear
@@ -130,7 +131,7 @@ except NameError:
         values_pear=json.load(input1)
     with open('Adj_MI_bin_samples_H2.txt','rb') as input2:
         values_MI=json.load(input2)
-for i,nb_pts in zip(range(len(num_points)),num_points): 
+""""for i,nb_pts in zip(range(len(num_points)),num_points): 
     data = np.vstack([values_pear[i],values_MI[i]]).T
     plt.hist(data,bins=21,label=['Pearson correlation','Adjusted Mutual info score + fd binning'])
     plt.title('Histogram of independancy criteria distribution depending for '+str(nb_pts) +' points')
@@ -139,8 +140,8 @@ for i,nb_pts in zip(range(len(num_points)),num_points):
     #plt.show()
     plt.clf()
 
-
-# In[15]:
+"""
+# In[8]:
 
 # Computation of pear & MI on linear data
 def estimate_l_pearson(k,j):
@@ -158,7 +159,7 @@ def estimate_l_MI(k,j):
 #chc_l_pear = mem.cache(estimate_l_pearson)
 #chc_l_MI = mem.cache(estimate_l_MI)
 
-num_samples_experiment=3000
+num_samples_experiment=10000
 result_pear=[]
 pval_pear=[]
 result_MI=[]
@@ -173,17 +174,18 @@ for idx_j,j in zip(range(len(sig_to_noise_rate)),sig_to_noise_rate):
     pval_MI.append([])
     
     for idx_k,k in zip(range(len(num_points)),num_points):
-        print('--Number of points : '+str(k))
+        #print('--Number of points : '+str(k))
         result_pear[idx_j].append([])
         #result_anapear[idx_j].append([])
         result_MI[idx_j].append([]) 
         pval_pear[idx_j].append([])
         pval_MI[idx_j].append([])
         
-        tmp_MI=Parallel(n_jobs=njobs,backend="multiprocessing",verbose=2)(
+        tmp_MI=Parallel(n_jobs=njobs,backend="multiprocessing",verbose=1)(
             delayed(estimate_l_MI)(k,j) for i in range(num_samples_experiment))
         values_MI.append(tmp_MI)
-        tmp_pear=Parallel(n_jobs=njobs,backend="multiprocessing",verbose=2)(
+        print(tmp_MI)
+        tmp_pear=Parallel(n_jobs=njobs,backend="multiprocessing",verbose=1)(
             delayed(estimate_l_pearson)(k,j) for i in range(num_samples_experiment))
         values_pear.append(tmp_pear)
         '''for i in range(num_samples_experiment):
@@ -227,7 +229,7 @@ for idx_j,j in zip(range(len(sig_to_noise_rate)),sig_to_noise_rate):
             # print(p_rank_MI/len(values_MI[idx_k]))'''
 
 
-# In[ ]:
+# In[4]:
 
 #Save final results
 '''with open('Pearson_p_values2.txt','wb') as outfile:
@@ -243,9 +245,9 @@ with open('Adj_MI_coeff2.txt','wb') as outfile:
     json.dump(result_MI,outfile)
 
 
-# In[ ]:
+# In[12]:
 
-def compute_FDR_MI(idx_j,idx_k,idx_l,MI_score):
+def compute_FDR_MI(idx_j,idx_k,MI_score):
     #Rank on Null distribution
     p_rank_MI   = 0.0
     #Rank on alternative distribution
@@ -259,9 +261,12 @@ def compute_FDR_MI(idx_j,idx_k,idx_l,MI_score):
         if result_MI[idx_j][idx_k][aval]>MI_score:
             a_rank_MI+=1.0
 
-    return p_rank_MI/(p_rank_MI+a_rank_MI)
-
-def compute_FDR_pear(idx_j,idx_k,idx_l,pear):
+    try: 
+        return p_rank_MI/(p_rank_MI+a_rank_MI)
+    except ZeroDivisionError:
+        return 0
+    
+def compute_FDR_pear(idx_j,idx_k,pear):
     p_rank_pear = 0.0 #Rank on Null distribution
     a_rank_pear = 0.0 #Rank on alternative distribution
 
@@ -272,17 +277,27 @@ def compute_FDR_pear(idx_j,idx_k,idx_l,pear):
     for aval in range(len(result_pear[idx_j][idx_k])):
         if result_pear[idx_j][idx_k][aval]>pear:
             a_rank_pear+=1.0
-
-    return p_rank_pear/(p_rank_pear+a_rank_pear)
+    try:
+        return p_rank_pear/(p_rank_pear+a_rank_pear)
+    except ZeroDivisionError:
+        return 0
     #print(p_rank_MI/(p_rank_MI+a_rank_MI)),
     #print(pval_MI[idx_j][idx_k][idx_l]*num_samples_estimation/(p_rank_MI+a_rank_MI))
 #cached_fdr_mi = mem.cache(compute_FDR_MI)
 #cached_fdr_pear = mem.cache(compute_FDR_pear)
 
 
-# In[ ]:
+# In[13]:
 
 #Compute FDR : 
+try: 
+    result_MI
+except NameError:
+    with open('Pearson_coeff.txt','r') as outfile:
+        result_pear=json.load(outfile)
+
+    with open('Adj_MI_coeff.txt','r') as outfile:
+        result_MI=json.load(outfile)
 FDR_MI=[]
 FDR_pear=[]
 for idx_j in range(len(sig_to_noise_rate)):
@@ -292,12 +307,10 @@ for idx_j in range(len(sig_to_noise_rate)):
     for idx_k in range(len(num_points)):
         #FDR_MI[idx_j].append([]) 
         #FDR_pear[idx_j].append([])
-        tmp_mi=Parallel(n_jobs=njobs,backend="multiprocessing",verbose=2)(delayed(compute_FDR_MI)(idx_j,idx_k,idx_l,MI_score)
-                                  for idx_l,MI_score in zip(range(len(result_MI[idx_j][idx_k])),
-                               result_MI[idx_j][idx_k]))
-        tmp_pear=Parallel(n_jobs=njobs,backend="multiprocessing",verbose=2)(delayed(compute_FDR_pear)(idx_j,idx_k,idx_l,pear)
-                                  for idx_l,pear in zip(range(len(result_MI[idx_j][idx_k])),
-                               result_pear[idx_j][idx_k]))
+        tmp_mi=Parallel(n_jobs=njobs,backend="multiprocessing",verbose=1)(delayed(compute_FDR_MI)(idx_j,idx_k,MI_score)
+                                  for MI_score in result_MI[idx_j][idx_k])
+        tmp_pear=Parallel(n_jobs=njobs,backend="multiprocessing",verbose=1)(delayed(compute_FDR_pear)(idx_j,idx_k,pear)
+                                  for pear in result_pear[idx_j][idx_k])
         FDR_MI.append(tmp_mi)
         FDR_pear.append(tmp_pear)
         
@@ -333,10 +346,10 @@ with open('FDR_pear.txt','wb') as outfile:
                 print(pval_MI[idx_j][idx_k][idx_l]*num_samples_estimation/(p_rank_MI+a_rank_MI))'''
 
 
-# In[47]:
+# In[6]:
 
 #Load final results
-'''try: 
+""""try: 
     pval_MI
 except NameError:
     with open('Pearson_p_values.txt','r') as outfile:
@@ -350,8 +363,9 @@ except NameError:
 
     with open('Adj_MI_coeff.txt','r') as outfile:
         result_MI=json.load(outfile)
-        
-#Plots
+"""
+""""
+'''#Plots
 reshape_pval_pear=[pval_pear[j][i] for j in range(len(pval_pear)) 
                    for i in range(len(pval_pear[0]))]
 
@@ -488,5 +502,5 @@ res_df.to_csv('result_linear_test.csv',index=False)
 
 # In[ ]:
 
-
+"""
 
