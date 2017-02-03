@@ -14,13 +14,14 @@ import scipy.stats as stats
 import numpy
 from sklearn import metrics
 import csv
-# import lib.fsic as fsic
-# import lib.fsic.data as data
-# import lib.fsic.indtest as it #Removed for theano locks
+import lib.fsic as fsic
+import lib.fsic.data as data
+import lib.fsic.indtest as it #Removed for theano locks
 import lib.mutual_info_bf.mutual_info as mi
 #import lib.lopez_paz.indep_crit as lp_crit
 import warnings
 import time
+from joblib import Parallel,delayed
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)  # Need to fix Lopez paz Ic
 
@@ -33,7 +34,7 @@ NUMERICAL = "Numerical"
 
 max_proc = int(sys.argv[1])
 # inputdata = 'input/kaggle/CEfinal_train'
-inputdata = 'test/test_crit_'
+inputdata = 'output/test/test_crit_l_p1.csv'
 # crit_names = "Mutual information",
 
 crit_names = [#"Pearson's correlation",
@@ -43,8 +44,8 @@ crit_names = [#"Pearson's correlation",
               "AMutual information",
               "NMutual information",
               "Corrected Cramer's V",
-              # "Lopez Paz's coefficient",
-              # "FSIC",
+              #"Lopez Paz's coefficient",
+              "FSIC",
               # "BF2d mutual info",
               # "BFMat mutual info",
               # "ScPearson correlation",
@@ -97,7 +98,7 @@ def discretized_sequences(x, tx, y, ty, ffactor=3, maxdev=3):
 
 
 
-def bin_variables(var1, var1type, var2, var2type,Fo=True):
+def bin_variables(var1, var1type, var2, var2type,Fo=False):
 
     if not Fo:
         if var1type == NUMERICAL:
@@ -329,7 +330,7 @@ def f_fsic(var1, var2, var1type, var2type):
         return 0
 
 
-dependency_functions = [#f_pearson,
+independency_functions = [#f_pearson,
                         #f_abspearson,
                         #f_pval_pearson,
                         f_chi2_test,
@@ -337,21 +338,37 @@ dependency_functions = [#f_pearson,
                         f_mutual_info_score,
                         f_corr_CramerV,
                         #f_lp_indep_c,
-                        # f_fsic,
+                        f_fsic#,
                         #f_bf_mutual_info_2d,
                         #f_bf_mutual_info_mat,
                         #f_sc_pearson,
                         #f_sc_pval_pearson
                         ]
 
+def compute_independence_test(_index,_row):
+    if not any((_row['SampleID'].startswith(reject+'-') or _row['SampleID'].endswith('-'+reject)        or _row['SampleID'].startswith(reject+'_') or ('-'+reject+'_') in _row['SampleID']) for reject in rejected_variables):
 
+        var1 = _row['A'].split()
+        var2 = _row['B'].split()
+        var1 = [float(i) for i in var1]
+        var2 = [float(i) for i in var2]
+
+        # res = f_mutual_info_score(var1, var2, row['A-Type'], row['B-Type'])
+        res = independency_functions[_index](var1, var2, _row['A-Type'], _row['B-Type'])
+        '''Debugging why Mutual Info works bad w/ some pairs '''  # ToDo : Remove section
+
+        return [res, _row['Pairtype'], _row['A-Type'], _row['B-Type'], _row['SampleID']]
+    else:
+        return [None]
+
+    
 def process_job_parts(part_number, index):
     data = pd.read_csv(inputdata + 'p' + str(part_number) + '.csv', sep=';')
 
-    # data.columns=['SampleID', 'A', 'B', 'A-Type', 'B-Type', 'Pairtype']
+    data.columns=['SampleID', 'A', 'B', 'A-Type', 'B-Type', 'Pairtype']
     results = []
 
-    for idx, row in data.iterrows():
+    """"for idx, row in data.iterrows():
         if not any((row['SampleID'].startswith(reject+'-') or row['SampleID'].endswith('-'+reject) #original
                     or row['SampleID'].startswith(reject+'_') or ('-'+reject+'_') in row['SampleID']) #probes
                    for reject in rejected_variables):
@@ -362,12 +379,14 @@ def process_job_parts(part_number, index):
             var2 = [float(i) for i in var2]
 
             # res = f_mutual_info_score(var1, var2, row['A-Type'], row['B-Type'])
-            res = dependency_functions[index](var1, var2, row['A-Type'], row['B-Type'])
+            res = independency_functions[index](var1, var2, row['A-Type'], row['B-Type'])
             '''Debugging why Mutual Info works bad w/ some pairs '''  # ToDo : Remove section
 
-            results.append([res, row['Pairtype'], row['A-Type'], row['B-Type'], row['SampleID']])
-
+            results.append([res, row['Pairtype'], row['A-Type'], row['B-Type'], row['SampleID']])   """
+    results=Parallel(n_jobs=max_proc,backend="multiprocessing",verbose=1)(delayed(compute_independence_test)(index,row) for _,row in data.iterrows())
     r_df = pd.DataFrame(results, columns=['Target', 'Pairtype', 'A-Type', 'B-Type', 'SampleID'])
+    r_df = r_df[numpy.isfinite(r_df['Target'])]
+    r_df = r_df.reset_index(drop=True)
     # r_df = r_df.sort_values(by='Target',ascending=False)
     # r_df.ix[(r_df.index>300) | (r_df['Pairtype']=='O'),['A','B']]=0
     sys.stdout.write('Writing results for ' + crit_names[index][:4] + '-' + str(part_number) + '\n')
@@ -386,16 +405,18 @@ def process_job(index):
     # data.columns=['SampleID', 'A', 'B', 'A-Type', 'B-Type', 'Pairtype']
     results = []
 
-    for idx, row in data.iterrows():
+    """"for idx, row in data.iterrows():
         var1 = row['A'].split()
         var2 = row['B'].split()
         var1 = [float(i) for i in var1]
         var2 = [float(i) for i in var2]
 
-        res = dependency_functions[index](var1, var2, row['A type'], row['B type'])
-        results.append([res, row['Pairtype'], row['A type'], row['B type']])
-
-    r_df = pd.DataFrame(results, columns=['Target', 'Pairtype', 'A type', 'B type'])
+        res = independency_functions[index](var1, var2, row['A type'], row['B type'])
+        results.append([res, row['Pairtype'], row['A type'], row['B type']])"""
+    results=Parallel(n_jobs=max_proc,backend="multiprocessing",verbose=1)(delayed(compute_independence_test)(index,row) for _,row in data.iterrows())
+    r_df = pd.DataFrame(results, columns=['Target', 'Pairtype', 'A-Type', 'B-Type', 'SampleID'])
+    r_df = r_df[numpy.isfinite(r_df['Target'])]
+    r_df = r_df.reset_index(drop=True)
     sys.stdout.write('Writing results for ' + crit_names[index][:4] + '\n')
     sys.stdout.flush()
     r_df.to_csv(inputdata + '_' + crit_names[index][:4] + '.csv', sep=';', index=False)
@@ -405,33 +426,34 @@ if __name__ == '__main__':
     for idx_crit, name in enumerate(crit_names):
         print(name)
         part_number = 1
-        pool = Pool(processes=max_proc)
+        # pool = Pool(processes=max_proc)
 
         while os.path.exists(inputdata + 'p' + str(part_number) + '.csv'):
             print(part_number)
-            pool.apply_async(process_job_parts, args=(part_number, idx_crit,))
+            #pool.apply_async(process_job_parts, args=(part_number, idx_crit,))
+            process_job_parts(part_number,idx_crit)
             part_number += 1
             time.sleep(1)
-        pool.close()
-        pool.join()  # For data in parts'''
+        # pool.close()
+        # pool.join()             # For data in parts'''
         # print('Begin ' + name)
         # process_job(idx_crit)
 
          # Merging file
-        if os.path.exists(inputdata + crit_names[idx_crit][:4] + '-1' + '.csv'):
-            with open(inputdata + crit_names[idx_crit][:4] + '.csv', 'wb') as mergefile:
-                merger = csv.writer(mergefile, delimiter=';', lineterminator='\n')
-                merger.writerow(['Target', 'Pairtype', 'A-Type', 'B-Type', 'SampleID'])
-                for i in range(1, part_number):
+        # if os.path.exists(inputdata + crit_names[idx_crit][:4] + '-1' + '.csv'):
+        #     with open(inputdata + crit_names[idx_crit][:4] + '.csv', 'wb') as mergefile:
+        #         merger = csv.writer(mergefile, delimiter=';', lineterminator='\n')
+        #         merger.writerow(['Target', 'Pairtype', 'A-Type', 'B-Type', 'SampleID'])
+        #         for i in range(1, part_number):
 
-                    with open(inputdata + crit_names[idx_crit][:4] + '-' + str(i) + '.csv', 'rb') as partfile:
-                        reader = csv.reader(partfile, delimiter=';')
-                        header = next(reader)
-                        for row in reader:
-                            merger.writerow(row)
-                    os.remove(inputdata + crit_names[idx_crit][:4] + '-' + str(i) + '.csv')  # For data in parts
-            print("Reorder data")
-            outputdata = pd.read_csv(inputdata + crit_names[idx_crit][:4] + '.csv', sep=';')
-            outputdata.columns = ['Target', 'Pairtype', 'A-Type', 'B-Type', 'SampleID']
-            outputdata = outputdata.sort_values(by='Target', ascending=False)
-            outputdata.to_csv(inputdata + crit_names[idx_crit][:4] + '.csv', sep=';', index=False)
+        #             with open(inputdata + crit_names[idx_crit][:4] + '-' + str(i) + '.csv', 'rb') as partfile:
+        #                 reader = csv.reader(partfile, delimiter=';')
+        #                 header = next(reader)
+        #                 for row in reader:
+        #                     merger.writerow(row)
+        #             os.remove(inputdata + crit_names[idx_crit][:4] + '-' + str(i) + '.csv')  # For data in parts
+        #     print("Reorder data")
+        #     outputdata = pd.read_csv(inputdata + crit_names[idx_crit][:4] + '.csv', sep=';')
+        #     outputdata.columns = ['Target', 'Pairtype', 'A-Type', 'B-Type', 'SampleID']
+        #     outputdata = outputdata.sort_values(by='Target', ascending=False)
+        #     outputdata.to_csv(inputdata + crit_names[idx_crit][:4] + '.csv', sep=';', index=False)

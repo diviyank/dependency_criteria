@@ -15,9 +15,9 @@ import numpy
 from sklearn import metrics
 
 
-inputdata='../output/obj8/pca_var/cluster_5/pairs_c_5.csv'
+inputdata='../output/test/input/Dares_pairs.csv'
 outputfolder='../output/test/'
-info='../output/obj8/pca_var/cluster_5/publicinfo_c_5.csv'
+info='../output/test/input/Dares_publicinfo.csv'
 max_proc=int(sys.argv[1])
 max_gen=10
 if not os.path.exists(outputfolder):
