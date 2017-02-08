@@ -36,7 +36,7 @@ BCOR5mm, % Binding correction
 %	TITLE AND AUTHOR(S)
 %----------------------------------------------------------------------------------------
 
-\title{\normalfont\spacedallcaps{Note on comparing two independance tests}} % The article title
+\title{\normalfont\spacedallcaps{Note on comparing independance tests}} % The article title
 
 \author{\spacedlowsmallcaps{D.Kalainathan \& O.Goudet  \& I.Guyon \& M.Sébag}} % The article author(s)  author affiliations need to be specified in the AUTHOR AFFILIATIONS block
 
@@ -88,8 +88,8 @@ BCOR5mm, % Binding correction
 %	INTRODUCTION
 %----------------------------------------------------------------------------------------
 
-\section{Context}
-Finding a suitable homogeneous independence test for heterogeneous data\footnote{Here we will focus on Numerical, Categorical and Binary data.} might be a tricky problem, as independence criteria are often specific to specific types of variables. Selecting one criterion over all the ones applicable to all types of variables was done thoughout two steps : the first one on a labelled heterogeneous dataset, and the second one on our real-world data, an unlabelled dataset. For the unlabelled dataset, we added to the dataset some "probes", resulting of random permutations of some real variables to create some really independant pairs to control the false discovery rate. On each on the two steps, we compared the performance of various tests, such as HSIC, the Mercer Kernels used in \cite{bach2002learning}, Chi-2, Cramér's V, Mutual information scores with variants ; all the binning-requiring methods applied with various binning methods. The best performance over our datasets was obtained by the Adjusted Mutual Information score \cite{vinh2010information}\footnote{implemented in the \textit{Scikit-Learn} \cite{scikit-learn} library under the \textit{sklearn.metrics.adjusted\_mutual\_info\_score()} method.} with a binning using the Freedman Diaconis Estimator\footnote{implemented in the \textit{numpy.histogram()} method}(AMI-FD). 
+\section{Abstract}
+Finding a suitable homogeneous independence test for heterogeneous data\footnote{Here we will focus on Numerical, Categorical and Binary data.} might be a tricky problem, as independence criteria are often specific to specific types of variables. Selecting one criterion over all the ones applicable to all types of variables was done thoughout two steps : the first one on a labelled heterogeneous dataset, and the second one on our real-world data, an unlabelled dataset. On each on the two steps, we compared the performance of various tests, such as HSIC, the Mercer Kernels used in \cite{bach2002learning}, Chi-2, Cramér's V, Mutual information scores with variants ; all the binning-requiring methods applied with various binning methods. The best performance over our datasets was obtained by the Adjusted Mutual Information score \cite{vinh2010information}\footnote{implemented in the \textit{Scikit-Learn} \cite{scikit-learn} library under the \textit{sklearn.metrics.adjusted\_mutual\_info\_score()} method.} with a binning using the Freedman Diaconis Estimator\footnote{implemented in the \textit{numpy.histogram()} method}(AMI-FD). 
  
 \section{Goal and methods}
 After choosing the AMI-FD method as an unique indepedence test, an interesting study is to compare the selected method and Pearson's correlation in the case of only numerical data, to observe the difference of performance of both tests when Pearson's correlation is applicable.
